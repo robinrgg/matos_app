@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Checklist Terrain</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f1a14;
+    --surface: #172210;
+    --surface2: #1e2d18;
+    --border: #2d4025;
+    --accent: #6abf5e;
+    --accent2: #4a9a3f;
+    --accent-soft: rgba(106,191,94,0.12);
+    --text: #e8f0e4;
+    --text-muted: #7d9b76;
+    --text-dim: #4d6645;
+    --checked-bg: rgba(106,191,94,0.07);
+    --tag-org: #3a5c8a;
+    --tag-naut: #5a3a8a;
+    --tag-eau: #3a6e8a;
+    --tag-sed: #8a623a;
+    --tag-inv: #6a3a8a;
+    --tag-mesure: #3a8a6a;
+    --tag-saisie: #8a7a3a;
+    --tag-secu: #8a3a3a;
+    --tag-hygiene: #3a8a5a;
+    --tag-equip: #5a6a3a;
+    --tag-ech: #6a5a3a;
+    --tag-outillage: #5a5a3a;
+    --tag-phyto: #3a7a6a;
+    --tag-zoo: #4a6a3a;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding-bottom: 100px;
+  }
+
+  /* HEADER */
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 16px;
+  }
+
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  .header h1 {
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .header h1 span { font-size: 20px; }
+
+  .global-progress {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  .global-progress strong {
+    color: var(--accent);
+    font-size: 16px;
+  }
+
+  /* PROGRESS BAR */
+  .progress-bar-wrap {
+    height: 4px;
+    background: var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+    border-radius: 4px;
+    transition: width 0.3s ease;
+  }
+
+  /* CONTROLS */
+  .controls {
+    padding: 10px 16px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+  }
+
+  .btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 7px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.2px;
+  }
+
+  .btn-reset {
+    background: transparent;
+    color: var(--text-muted);
+  }
+
+  .btn-reset:hover { background: var(--surface2); color: var(--text); }
+
+  .btn-expand {
+    background: transparent;
+    color: var(--text-muted);
+  }
+
+  .btn-expand:hover { background: var(--surface2); color: var(--text); }
+
+  .btn-filter {
+    background: transparent;
+    color: var(--text-muted);
+  }
+
+  .btn-filter.active {
+    background: var(--accent-soft);
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  /* SECTIONS */
+  .section {
+    margin: 12px 12px 0;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    background: var(--surface);
+    cursor: pointer;
+    user-select: none;
+    gap: 10px;
+    transition: background 0.15s;
+  }
+
+  .section-header:hover { background: var(--surface2); }
+
+  .section-header:active { background: var(--border); }
+
+  .section-title {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--text);
+    flex: 1;
+  }
+
+  .section-count {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  .section-count.done { color: var(--accent); }
+
+  .chevron {
+    font-size: 12px;
+    color: var(--text-dim);
+    transition: transform 0.2s;
+  }
+
+  .section.collapsed .chevron { transform: rotate(-90deg); }
+
+  .section-mini-bar {
+    height: 3px;
+    background: var(--border);
+  }
+
+  .section-mini-bar-fill {
+    height: 100%;
+    background: var(--accent2);
+    transition: width 0.3s;
+  }
+
+  /* ITEMS */
+  .items-list { display: block; }
+  .section.collapsed .items-list { display: none; }
+
+  .item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 14px;
+    border-top: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.12s;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .item:hover { background: var(--surface2); }
+  .item:active { background: var(--border); }
+
+  .item.checked {
+    background: var(--checked-bg);
+  }
+
+  /* Custom checkbox */
+  .checkbox {
+    width: 22px;
+    height: 22px;
+    min-width: 22px;
+    border-radius: 6px;
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    margin-top: 1px;
+    background: var(--surface);
+  }
+
+  .item.checked .checkbox {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .checkbox-tick {
+    display: none;
+    color: var(--bg);
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .item.checked .checkbox-tick { display: block; }
+
+  .item-body { flex: 1; min-width: 0; }
+
+  .item-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1.4;
+    transition: color 0.15s;
+  }
+
+  .item.checked .item-name {
+    color: var(--text-dim);
+    text-decoration: line-through;
+    text-decoration-color: var(--text-dim);
+  }
+
+  .item-meta {
+    margin-top: 3px;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    padding: 2px 7px;
+    border-radius: 20px;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+  }
+
+  .note {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-style: italic;
+    line-height: 1.4;
+    margin-top: 3px;
+  }
+
+  /* Tag colors */
+  .tag-org { background: rgba(58,92,138,0.25); color: #7aaee8; }
+  .tag-naut { background: rgba(90,58,138,0.25); color: #b07ae8; }
+  .tag-eau { background: rgba(58,110,138,0.25); color: #7ac8e8; }
+  .tag-sed { background: rgba(138,98,58,0.25); color: #e8b87a; }
+  .tag-inv { background: rgba(106,58,138,0.25); color: #c07ae8; }
+  .tag-mesure { background: rgba(58,138,106,0.25); color: #7ae8c0; }
+  .tag-saisie { background: rgba(138,122,58,0.25); color: #e8d87a; }
+  .tag-secu { background: rgba(138,58,58,0.25); color: #e87a7a; }
+  .tag-hygiene { background: rgba(58,138,90,0.25); color: #7ae890; }
+  .tag-equip { background: rgba(90,106,58,0.25); color: #b8e87a; }
+  .tag-ech { background: rgba(106,90,58,0.25); color: #e8c87a; }
+  .tag-phyto { background: rgba(58,122,106,0.25); color: #7ae8d0; }
+  .tag-zoo { background: rgba(74,106,58,0.25); color: #a0e87a; }
+  .tag-outillage { background: rgba(90,90,58,0.25); color: #d8e87a; }
+  .tag-prel { background: rgba(58,90,138,0.25); color: #7aa0e8; }
+
+  /* FLOATING SUMMARY */
+  .float-summary {
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 30px;
+    padding: 10px 20px;
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    z-index: 200;
+    white-space: nowrap;
+    backdrop-filter: blur(8px);
+  }
+
+  .float-stat {
+    text-align: center;
+  }
+
+  .float-stat .num {
+    font-family: 'DM Mono', monospace;
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 1;
+  }
+
+  .float-stat .lbl {
+    font-size: 10px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .float-stat.ok .num { color: var(--accent); }
+  .float-stat.miss .num { color: #e87a7a; }
+
+  .float-divider {
+    width: 1px;
+    height: 28px;
+    background: var(--border);
+  }
+
+  /* Filter only missing */
+  body.filter-missing .item.checked { display: none; }
+  body.filter-missing .section.all-done { display: none; }
+
+  /* Empty section message */
+  .empty-msg {
+    padding: 14px 16px;
+    font-size: 13px;
+    color: var(--text-dim);
+    font-style: italic;
+    text-align: center;
+    border-top: 1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <h1><span>🌿</span> Matériel Terrain</h1>
+    <div class="global-progress">
+      <strong id="prog-done">0</strong>/<span id="prog-total">0</span>
+    </div>
+  </div>
+  <div class="progress-bar-wrap">
+    <div class="progress-bar-fill" id="global-bar" style="width:0%"></div>
+  </div>
+</div>
+
+<div class="controls">
+  <button class="btn btn-reset" onclick="resetAll()">↺ Réinitialiser</button>
+  <button class="btn btn-expand" onclick="toggleAll()">⊞ Tout ouvrir</button>
+  <button class="btn btn-filter" id="filter-btn" onclick="toggleFilter()">👁 Manquants seuls</button>
+</div>
+
+<div id="sections-container"></div>
+
+<div class="float-summary">
+  <div class="float-stat ok">
+    <div class="num" id="fl-done">0</div>
+    <div class="lbl">Prêt</div>
+  </div>
+  <div class="float-divider"></div>
+  <div class="float-stat miss">
+    <div class="num" id="fl-miss">0</div>
+    <div class="lbl">Manquant</div>
+  </div>
+  <div class="float-divider"></div>
+  <div class="float-stat">
+    <div class="num" id="fl-pct" style="color:var(--text-muted)">0%</div>
+    <div class="lbl">Complété</div>
+  </div>
+</div>
+
+<script>
+const DATA = [
+  {
+    id: "intervention",
+    title: "À chaque intervention",
+    items: [
+      { id:"i01", cat:"Organisation", name:"Classeur étude" },
+      { id:"i02", cat:"Organisation", name:"Fiches stations", note:"dans classeur" },
+      { id:"i03", cat:"Organisation", name:"Protocoles" },
+      { id:"i04", cat:"Nautisme", name:"Bateau pneumatique sur remorque" },
+      { id:"i05", cat:"Nautisme", name:"Moteur électrique Bateau" },
+      { id:"i06", cat:"Nautisme", name:"Batterie moteur électrique" },
+      { id:"i07", cat:"Nautisme", name:"Moteur thermique Bateau", note:"Pêches Vernes ou vent fort" },
+      { id:"i08", cat:"Nautisme", name:"Nourisse Bateau", note:"Pêches Vernes ou vent fort" },
+      { id:"i09", cat:"Nautisme", name:"Armement Bateau" },
+      { id:"i10", cat:"Nautisme", name:"Bidon étanche" },
+      { id:"i11", cat:"Nautisme", name:"Ancre" },
+      { id:"i12", cat:"Nautisme", name:"Cordes (Ancre)" },
+      { id:"i13", cat:"Mesures Terrain", name:"Appareil Photo" },
+      { id:"i14", cat:"Mesures Terrain", name:"GPS" },
+      { id:"i15", cat:"Outillage", name:"Piles" },
+      { id:"i16", cat:"Saisie", name:"Planchette de saisie" },
+      { id:"i17", cat:"Saisie", name:"Tablette de saisie informatique", note:"avec logiciel Kor installé" },
+      { id:"i18", cat:"Saisie", name:"Trousse" },
+      { id:"i19", cat:"Sécurité", name:"Extincteur" },
+      { id:"i20", cat:"Sécurité", name:"Gilet de sauvetage", note:"1/personne" },
+      { id:"i21", cat:"Sécurité", name:"Trousse de secours" },
+      { id:"i22", cat:"Hygiène", name:"Pastilles de Désinfection" },
+      { id:"i23", cat:"Hygiène", name:"Pulvérisateur Désinfection" },
+      { id:"i24", cat:"Équipement personnel", name:"Bottes" },
+      { id:"i25", cat:"Équipement personnel", name:"Casquette" },
+      { id:"i26", cat:"Équipement personnel", name:"Crème solaire" },
+      { id:"i27", cat:"Équipement personnel", name:"Gourde" },
+      { id:"i28", cat:"Équipement personnel", name:"Lunettes de soleil" },
+      { id:"i29", cat:"Équipement personnel", name:"Rechange" },
+      { id:"i30", cat:"Équipement personnel", name:"Téléphone de terrain" },
+    ]
+  },
+  {
+    id: "prelevements",
+    title: "Tous prélèvements",
+    items: [
+      { id:"p01", cat:"Mesures Eau", name:"Sonde plan d'eau avec son touret", note:"SOND-517 en priorité" },
+      { id:"p02", cat:"Mesures Eau", name:"Sonde Conductivité", note:"pour mesure robinet prise" },
+      { id:"p03", cat:"Mesures Eau", name:"Sonde oxygène", note:"pour mesure robinet prise" },
+      { id:"p04", cat:"Mesures Eau", name:"Sonde pH", note:"pour mesure robinet prise" },
+      { id:"p05", cat:"Mesures Eau", name:"Matériel d'étalonnage des sondes" },
+      { id:"p06", cat:"Mesures Eau", name:"Étalonner sonde" },
+      { id:"p07", cat:"Prél. Eau", name:"Cuve inox / PEHD de mélange" },
+      { id:"p08", cat:"Prél. Eau", name:"Sceau plastique pour mesure PC" },
+      { id:"p09", cat:"Prél. Eau", name:"Bécher" },
+      { id:"p10", cat:"Mesures Eau", name:"Secchi" },
+      { id:"p11", cat:"Mesures Terrain", name:"Échosondeur (+batterie)", note:"Pour Pmax" },
+      { id:"p12", cat:"Mesures Terrain", name:"Profondimètre (Sondeur à main)", note:"Pour Pmax" },
+      { id:"p13", cat:"Échantillons", name:"Étiquettes flacons" },
+      { id:"p14", cat:"Échantillons", name:"Glacière prélèvements" },
+      { id:"p15", cat:"Échantillons", name:"Bons de transport (1/glacière)" },
+      { id:"p16", cat:"Échantillons", name:"Blocs eutectique (N × glacières)" },
+      { id:"p17", cat:"Échantillons", name:"Congélateur" },
+      { id:"p18", cat:"Échantillons", name:"Scotch" },
+      { id:"p19", cat:"Saisie", name:"Fiches Profil PC" },
+    ]
+  },
+  {
+    id: "phytozoo",
+    title: "Phytoplancton / Zooplancton",
+    items: [
+      { id:"z01", cat:"Prél. Eau", name:"Tuyau intégrateur" },
+      { id:"z02", cat:"Échantillons", name:"Flacons Phytoplancton (500 mL)", note:"1/PE = 2, remplir à 400 mL — Si efflorescence : Verne +2, Vanadal +1 → Total = 5" },
+      { id:"z03", cat:"Échantillons", name:"Micrositine (verre brun 300 mL)", note:"1/PE = 2 — Si efflorescence : Verne +2, Vanadal +1 → Total = 5" },
+      { id:"z04", cat:"Prél. Zooplancton", name:"Filet Zooplancton (30 μm)" },
+      { id:"z05", cat:"Échantillons", name:"Flacons Zooplancton (500 mL)", note:"1/PE = 2" },
+      { id:"z06", cat:"Échantillons", name:"Pilulier (120 mL)", note:"1/PE = 2" },
+      { id:"z07", cat:"Échantillons", name:"Lugol", note:"Phyto: 0,5 mL/100 mL (=10 mL) — Zoo: 0,75 mL/100 mL (=7,5 mL) — Total max = 17,5 mL" },
+      { id:"z08", cat:"Saisie", name:"Fiches de prélèvements phytoplancton" },
+      { id:"z09", cat:"Saisie", name:"Fiches de prélèvements zooplancton" },
+      { id:"z10", cat:"Échantillons", name:"Étiquettes flacons" },
+    ]
+  },
+  {
+    id: "eau",
+    title: "Eau",
+    items: [
+      { id:"e01", cat:"Prél. Eau", name:"Bouteille à prélèvement + corde" },
+      { id:"e02", cat:"Prél. Eau", name:"Tuyau intégrateur" },
+      { id:"e03", cat:"Échantillons", name:"Flacons Prélèvements Eau", note:"9 / station (2×3 stations)" },
+      { id:"e04", cat:"Saisie", name:"Fiches de prélèvements plan d'eau" },
+      { id:"e05", cat:"Échantillons", name:"Étiquettes flacons" },
+    ]
+  },
+  {
+    id: "sediments",
+    title: "Sédiments / IOBL",
+    items: [
+      { id:"s01", cat:"Nautisme", name:"Ancre" },
+      { id:"s02", cat:"Nautisme", name:"Cordes (Ancre)" },
+      { id:"s03", cat:"Prél. Sédiments", name:"Benne sédiments" },
+      { id:"s04", cat:"Prél. Sédiments", name:"Cordes (benne)" },
+      { id:"s05", cat:"Prél. Sédiments", name:"Gamate (sédiments)", note:"× 2 mini" },
+      { id:"s06", cat:"Prél. Sédiments", name:"Truelle (sédiments)" },
+      { id:"s07", cat:"Saisie", name:"Fiches de prélèvements IOBL", note:"2 stations / plan d'eau" },
+      { id:"s08", cat:"Saisie", name:"Fiches de prélèvements Sédiments" },
+      { id:"s09", cat:"Prél. Invertébrés", name:"Bassines + seaux" },
+      { id:"s10", cat:"Prél. Invertébrés", name:"Entonnoire Inv." },
+      { id:"s11", cat:"Prél. Invertébrés", name:"Éthanol", note:"1 fixation sur terrain puis changement de l'éthanol le lendemain au bureau" },
+      { id:"s12", cat:"Prél. Invertébrés", name:"Filet conique" },
+      { id:"s13", cat:"Prél. Invertébrés", name:"Flacons Prélèvements Inv." },
+      { id:"s14", cat:"Prél. Invertébrés", name:"Pissettes" },
+      { id:"s15", cat:"Prél. Invertébrés", name:"Tamis IOBL 250 μm" },
+      { id:"s16", cat:"Échantillons", name:"Flacons Prélèvements Sédiments", note:"Dans lavabo labo" },
+      { id:"s17", cat:"Échantillons", name:"Flacons Prélèvements IOBL" },
+    ]
+  }
+];
+
+const CAT_CLASS = {
+  "Organisation": "tag-org",
+  "Nautisme": "tag-naut",
+  "Mesures Eau": "tag-eau",
+  "Mesures Terrain": "tag-mesure",
+  "Prél. Eau": "tag-prel",
+  "Prél. Zooplancton": "tag-zoo",
+  "Prél. Sédiments": "tag-sed",
+  "Prél. Invertébrés": "tag-inv",
+  "Saisie": "tag-saisie",
+  "Sécurité": "tag-secu",
+  "Hygiène": "tag-hygiene",
+  "Équipement personnel": "tag-equip",
+  "Échantillons": "tag-ech",
+  "Outillage": "tag-outillage",
+};
+
+let checked = JSON.parse(localStorage.getItem("terrain_checked") || "{}");
+let filterMissing = false;
+let allOpen = true;
+
+function save() {
+  localStorage.setItem("terrain_checked", JSON.stringify(checked));
+}
+
+function getTagClass(cat) {
+  return CAT_CLASS[cat] || "tag-org";
+}
+
+function buildSections() {
+  const container = document.getElementById("sections-container");
+  container.innerHTML = "";
+
+  DATA.forEach(section => {
+    const sec = document.createElement("div");
+    sec.className = "section";
+    sec.id = "sec-" + section.id;
+
+    sec.innerHTML = `
+      <div class="section-header" onclick="toggleSection('${section.id}')">
+        <div class="section-title">${section.title}</div>
+        <div class="section-count" id="cnt-${section.id}"></div>
+        <div class="chevron">▼</div>
+      </div>
+      <div class="section-mini-bar"><div class="section-mini-bar-fill" id="bar-${section.id}" style="width:0%"></div></div>
+      <div class="items-list" id="list-${section.id}"></div>
+    `;
+
+    const list = sec.querySelector(".items-list");
+
+    section.items.forEach(item => {
+      const div = document.createElement("div");
+      div.className = "item" + (checked[item.id] ? " checked" : "");
+      div.id = "item-" + item.id;
+      div.setAttribute("role", "checkbox");
+      div.setAttribute("aria-checked", checked[item.id] ? "true" : "false");
+      div.onclick = () => toggleItem(item.id);
+
+      div.innerHTML = `
+        <div class="checkbox"><span class="checkbox-tick">✓</span></div>
+        <div class="item-body">
+          <div class="item-name">${item.name}</div>
+          <div class="item-meta">
+            <span class="tag ${getTagClass(item.cat)}">${item.cat}</span>
+          </div>
+          ${item.note ? `<div class="note">${item.note}</div>` : ""}
+        </div>
+      `;
+
+      list.appendChild(div);
+    });
+
+    container.appendChild(sec);
+  });
+
+  updateAll();
+}
+
+function toggleItem(id) {
+  checked[id] = !checked[id];
+  save();
+  const el = document.getElementById("item-" + id);
+  if (checked[id]) {
+    el.classList.add("checked");
+    el.setAttribute("aria-checked", "true");
+  } else {
+    el.classList.remove("checked");
+    el.setAttribute("aria-checked", "false");
+  }
+  updateAll();
+}
+
+function updateAll() {
+  let totalDone = 0, totalAll = 0;
+
+  DATA.forEach(section => {
+    let done = 0, total = section.items.length;
+    section.items.forEach(item => { if (checked[item.id]) done++; });
+    totalDone += done;
+    totalAll += total;
+
+    const cnt = document.getElementById("cnt-" + section.id);
+    const bar = document.getElementById("bar-" + section.id);
+    const sec = document.getElementById("sec-" + section.id);
+
+    cnt.textContent = `${done}/${total}`;
+    cnt.className = "section-count" + (done === total ? " done" : "");
+    bar.style.width = total > 0 ? ((done / total) * 100) + "%" : "0%";
+
+    if (done === total) sec.classList.add("all-done");
+    else sec.classList.remove("all-done");
+  });
+
+  document.getElementById("prog-done").textContent = totalDone;
+  document.getElementById("prog-total").textContent = totalAll;
+  document.getElementById("global-bar").style.width = totalAll > 0 ? ((totalDone / totalAll) * 100) + "%" : "0%";
+
+  document.getElementById("fl-done").textContent = totalDone;
+  document.getElementById("fl-miss").textContent = totalAll - totalDone;
+  document.getElementById("fl-pct").textContent = totalAll > 0 ? Math.round((totalDone / totalAll) * 100) + "%" : "0%";
+}
+
+function toggleSection(id) {
+  const sec = document.getElementById("sec-" + id);
+  sec.classList.toggle("collapsed");
+}
+
+function toggleAll() {
+  allOpen = !allOpen;
+  document.querySelectorAll(".section").forEach(s => {
+    if (allOpen) s.classList.remove("collapsed");
+    else s.classList.add("collapsed");
+  });
+  document.querySelector(".btn-expand").textContent = allOpen ? "⊟ Tout fermer" : "⊞ Tout ouvrir";
+}
+
+function toggleFilter() {
+  filterMissing = !filterMissing;
+  const btn = document.getElementById("filter-btn");
+  if (filterMissing) {
+    document.body.classList.add("filter-missing");
+    btn.classList.add("active");
+    btn.textContent = "👁 Tout afficher";
+  } else {
+    document.body.classList.remove("filter-missing");
+    btn.classList.remove("active");
+    btn.textContent = "👁 Manquants seuls";
+  }
+}
+
+function resetAll() {
+  if (!confirm("Réinitialiser toute la liste ?")) return;
+  checked = {};
+  save();
+  document.querySelectorAll(".item").forEach(el => {
+    el.classList.remove("checked");
+    el.setAttribute("aria-checked", "false");
+  });
+  updateAll();
+}
+
+buildSections();
+</script>
+</body>
+</html>

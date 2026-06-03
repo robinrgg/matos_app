@@ -257,7 +257,7 @@ body.filter-missing .section.all-done { opacity: .4; pointer-events: none; }
 <!-- HEADER -->
 <div class="hdr">
   <div class="hdr-top">
-    <div class="hdr-title"><span>🌿</span> Matériel Terrain</div>
+    <div class="hdr-title"><span>☭</span> Matériel Terrain</div>
     <div class="hdr-prog"><strong id="pg-done">0</strong>/<span id="pg-total">0</span></div>
   </div>
   <div class="pbar-wrap"><div class="pbar-fill" id="global-bar" style="width:0%"></div></div>
@@ -315,10 +315,10 @@ const CAT_CLASS = {
 const GROUPS = [
   { id: "peche", label: "⚡ Pêches électriques" },
   { id: "eau",   label: "💧 Prélèvements eau" },
-  { id: "debits",   label: "〰 Débits" },
-  { id: "reco",  label: "🔭 Reco frayère" },
+  { id: "debits",   label: "🌊 Débits" },
+  { id: "reco",  label: "🐟 Reco frayère" },
   { id: "charli",label: "⛵ Charli Alber" },
-  { id: "verne", label: "🧪 Verne Vanadal" },
+  { id: "verne", label: '<svg viewBox="0 0 24 24" width="15" height="15" style="vertical-align:-2px;margin-right:5px" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h7v13H3z"/><path d="M5 6.5h3M5 9h3M5 11.5h3M5 14h3"/><path d="M10 11c2 0 2 1.5 4 1.5S16.5 11 18.5 11M10 14c2 0 2 1.5 4 1.5S16.5 14 18.5 14M10 17c2 0 2 1.5 4 1.5S16.5 17 18.5 17"/></svg>Verne Vanadal' },
 ];
 
 // Modes (feuilles de liste)
@@ -1118,7 +1118,7 @@ function buildMainTabs() {
   GROUPS.forEach(g => {
     const t = document.createElement("div");
     t.className = "tab-main" + (g.id === currentGroup ? " active" : "");
-    t.textContent = g.label;
+    t.innerHTML = g.label;
     t.onclick = () => selectGroup(g.id);
     el.appendChild(t);
   });

@@ -62,7 +62,7 @@ body {
 }
 .hdr-top {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 11px 14px 8px;
+  padding: 9px 14px 6px;
 }
 .hdr-title {
   font-size: 16px; font-weight: 700; letter-spacing: -0.3px;
@@ -250,6 +250,24 @@ body.filter-missing .section.all-done { opacity: .4; pointer-events: none; }
 
 /* empty state */
 .empty { padding: 20px; text-align: center; font-size: 13px; color: var(--text-d); font-style: italic; }
+
+/* ====== MOBILE COMPACT ====== */
+@media (max-width: 560px) {
+  .hdr-top { padding: 7px 12px 5px; }
+  .hdr-title { font-size: 14px; gap: 5px; }
+  .hdr-title span { font-size: 16px; }
+  .hdr-prog { font-size: 12px; }
+  .hdr-prog strong { font-size: 14px; }
+
+  .tab-main { padding: 7px 11px; font-size: 12px; }
+  .tabs-sub { padding: 6px 10px; gap: 5px; }
+  .tab-sub { padding: 4px 10px; font-size: 11px; }
+  .controls { padding: 6px 10px; gap: 6px; }
+  .btn { padding: 5px 11px; font-size: 11px; }
+
+  .sections-wrap { padding: 8px 8px 0; }
+  .item { padding: 10px 12px; }
+}
 </style>
 </head>
 <body>
